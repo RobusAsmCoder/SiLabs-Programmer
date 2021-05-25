@@ -1,0 +1,53 @@
+
+        EQU $ASAM.PASS.ERROR=2
+
+
+;---[MACROS]------------------------------------------------------------------
+; CI HEX GENERATOR
+;-----------------------------------------------------------------------------
+        Include "?\INTEL51\PROC\PARSASMCI.INC"
+        ;Include "?\PARS\PARSSYS.AZ8"
+
+
+ProgAllMode_SiLabs_C2   EQU 0
+
+        .#define  0x
+@.0 EQU 0@.1H
+        ..
+        Include "IDDEV.h"
+
+
+        .MAC_CMD ,û
+         DB @..-$+128
+         DB @.0       ;CMD
+         DB @.1       ;PARAMETER(S)
+        ..
+
+        .MAC_REC ,,,,,û
+         DB @..-$
+         DD @.0       ;IDDEV
+         DD @.2       ;FLASH START ADDR
+         DD @.3       ;FLASH SIZE
+         DB @.4       ;PAGE SIZE TYPE RECORD
+         DB @.1,0     ;STRING
+         DB @.5       ;FPDAT
+        ..
+
+        ORG 0
+START   EQU $
+
+
+        MAC_CMD IDDEV_CMD_CPU_TYPE,       ProgAllMode_SiLabs_C2,"SiLabs",0
+
+        MAC_REC 0416H, "C8051F92x", 0000H, 32768, ProgAllFlashSize_T1024  ,0B4H
+        MAC_REC 020FH, "C8051F340", 0000H, 64512, ProgAllFlashSize_T512   ,0ADH
+
+        DB 0
+
+END     EQU $
+SIZE    EQU END-START
+
+
+        SaveBIN      "%$ASAM.Compile.FileName%.BIN",START,SIZE
+        CIIHEX.SAVE  "%$ASAM.Compile.FileName%.INC",START,SIZE
+        SaveLabels   "%$ASAM.Compile.FileName%.TXT"

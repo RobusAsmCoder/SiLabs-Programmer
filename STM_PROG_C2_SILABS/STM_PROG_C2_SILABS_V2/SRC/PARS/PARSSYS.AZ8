@@ -1,0 +1,316 @@
+
+
+
+        .#DEFINE SYSCMD_ 0x
+SYSCMD.@.0 EQU 0@.100H
+        ..
+        .#DEFINE SCRPT_ 0x
+SCRPT.@.0 EQU 0@.1H
+        ..
+
+        .CONST  =$
+         #DEFINE @.0 0x@.1
+        ..
+
+
+        Include "parssys.h"
+;        Include "parssys.hdr"
+        Include "PROC\PARSASM.inc"
+
+        .DW SCRPT.VAR_DEC()
+         DW SCRPT.VAR_DEC,@.0+80H
+        ..
+        .DW SCRPT.VAR_HEX()
+         DW SCRPT.VAR_HEX,@.0+80H
+        ..
+        .DW SCRPT.VAR_STR()
+         DW SCRPT.VAR_STR,@.0+80H
+        ..
+;        .DB
+;        ..
+
+;        .MADDBYTE SYSCMD.û
+;         DW SYSCMD.@.0
+;        ..
+        .MADDBYTE û
+         EQU $ZX.R.IX=$
+         DW @.0
+         EQU $ZX.R.PC=EXTB_ST
+         EQU $ZX.R.BC=$-$ZX.R.IX
+         MoveMemAZ $ZX.R.IX,EXBSTR,16,$ZX.R.BC
+         EQU $ZX.R.BREAK=EXTB_EN
+         RunEmulZXne
+         MoveMemZA EXBSTR,16,$ZX.R.IX,$ZX.R.BC
+         ORG $ZX.R.IX+$ZX.R.BC
+        ..
+        .MADDBYTE
+        ..
+        EQU TMP_CAR_ST=0
+        EQU TMP_CAR_EN=0
+
+        .MADDCMD_EN ,û
+         EQU TMP_CAR_ST=$
+         DB 0
+         MADDBYTE @.1
+         MADDBYTE SYSCMD.EN_OR_LF     ;ENTER DETECT
+         MADDBYTE SYSCMD.ID_END,@.0
+         EQU TMP_CAR_EN=$
+         ORG TMP_CAR_ST
+         DB TMP_CAR_EN-TMP_CAR_ST
+         ORG TMP_CAR_EN
+        ..
+
+;        .MADDCMD_EN
+;         EQU TMP_CAR_ST=$
+;         DB 0
+;         MADDBYTE @.1
+;         MADDBYTE @.2
+;         MADDBYTE @.3
+;         MADDBYTE @.4
+;         MADDBYTE @.5
+;         MADDBYTE @.6
+;         MADDBYTE @.7
+;         MADDBYTE @.8
+;         MADDBYTE @.9
+;         MADDBYTE SYSCMD.EN_OR_LF     ;ENTER DETECT
+;         MADDBYTE SYSCMD.ID_END,@.0
+;         EQU TMP_CAR_EN=$
+;         ORG TMP_CAR_ST
+;         DB TMP_CAR_EN-TMP_CAR_ST
+;         ORG TMP_CAR_EN
+;        ..
+
+
+
+        EQU TMP_SCR_START=0
+        EQU TMP_SCR_END=0
+        .SCRPT_START û
+         EQU TMP_SCR_START=$
+         DW 0
+         DB @.0
+         DB 0
+        ..
+
+;        .SCRPT_SEND_EN û
+;         DB SCRPT.SEND
+;         MADDBYTE @.0
+;;         MADDBYTE @.1
+;;         MADDBYTE @.2
+;;         MADDBYTE @.3
+;;         MADDBYTE @.4
+;;         MADDBYTE @.5
+;;         MADDBYTE @.6
+;;         MADDBYTE @.7
+;;         MADDBYTE @.8
+;;         MADDBYTE @.9
+;         DB 13,10
+;         DB 0
+;        ..
+
+
+        .SCRPT_SEND_EN
+         DB SCRPT.SEND
+         MADDBYTE @.0
+         MADDBYTE @.1
+         MADDBYTE @.2
+         MADDBYTE @.3
+         MADDBYTE @.4
+         MADDBYTE @.5
+         MADDBYTE @.6
+         MADDBYTE @.7
+         MADDBYTE @.8
+         MADDBYTE @.9
+         DB 13,10
+         DB 0
+        ..
+
+        .SCRPT_DELAY û
+         DB SCRPT.DELAY,@.0/10
+        ..
+
+        .SCRPT_WAITBEFORESEND û
+         DB SCRPT.WAITBEFORESEND
+         DB @.0/100
+        ..
+
+        .SCRPT_WAITMAX û
+         DB SCRPT.WAITMAX
+         DB @.0/100
+        ..
+
+        .SCRPT_REPTMAX û
+         DB SCRPT.REPTMAX
+         DB @.0
+        ..
+
+
+        .SCRPT_ANSWER û
+         DB SCRPT.ANSWER
+         DW @.0
+        ..
+
+        .SCRPT_EVENT û
+         DB SCRPT.EVENT
+         DW @.0
+        ..
+
+        .SCRPT_LET_VAR()=()
+         DB SCRPT.LET
+         DB SCRPT.LET_@.1
+         DB @.0+@.2*16
+        ..
+
+        .SCRPT_LET_VAR()=
+         DB SCRPT.LET
+         DB SCRPT.LET_VALUE
+         DB @.0
+         DD @.1
+        ..
+
+        .SCRPT_COMPARE_VAR(),()
+         DB SCRPT.CMP
+         DB SCRPT.LET_@.1
+         DB @.0+@.2*16
+        ..
+
+        .SCRPT_COMPARE_VAR(),
+         DB SCRPT.CMP
+         DB SCRPT.LET_VALUE
+         DB @.0
+         DD @.1
+        ..
+
+        .SCRPT_END
+         DB SCRPT.END
+         EQU TMP_SCR_END=$
+         ORG TMP_SCR_START
+         DW TMP_SCR_END-TMP_SCR_START
+         ORG TMP_SCR_END
+        ..
+
+
+
+
+
+$PASINCARRAY.LCNT     EQU 0
+$PASINCARRAY.SADDR    EQU 0
+$PASINCARRAY.ADDR     EQU $PASINCARRAY.SADDR
+$PASINCARRAY.PAGE     EQU 0
+$PASINCARRAY.TPAGE    EQU 0
+$PASINCARRAY.TADDR    EQU 0
+$PASINCARRAY.RBYTE    EQU 0
+$PASINCARRAY.RADDR    EQU 0
+$PASINCARRAY.BACKADR  EQU 0
+
+        .PASINCARRAY.SAVE.ASAMADDR
+         EQU $PASINCARRAY.TPAGE=$PAGE
+         EQU $PASINCARRAY.TADDR=$
+         ORG $PASINCARRAY.ADDR
+         PAGE $PASINCARRAY.PAGE
+        ..
+
+        .PASINCARRAY.RESORE.ASAMADDR
+         EQU $PASINCARRAY.ADDR=$
+         PAGE $PASINCARRAY.TPAGE
+         ORG $PASINCARRAY.TADDR
+        ..
+
+;
+;        .PASINCARRAY.START û
+;         PASINCARRAY.SAVE.ASAMADDR
+;         EQU $PASINCARRAY.ADDR=$PASINCARRAY.SADDR
+;         EQU $PASINCARRAY.LCNT=6
+;         DT @.0-1
+;         DB "] OF BYTE=("
+;         PASINCARRAY.RESORE.ASAMADDR
+;        ..
+;
+;        .PASINCARRAY.ADDBLK ,û
+;         MOVEMEMAZ @.0,18432,16,@.1
+;         PASINCARRAY.SAVE.ASAMADDR
+;         .0+@.1
+;          EQU $PASINCARRAY.RADDR=18432+@.C-1
+;          PEEKZ "$PASINCARRAY.RBYTE",$PASINCARRAY.RADDR,16,1
+;          DT $PASINCARRAY.RBYTE
+;          EQU $PASINCARRAY.BACKADR=$
+;          DB ','
+;          .0+LOW($PASINCARRAY.LCNT/16)
+;           DB 13,10
+;           EQU $PASINCARRAY.LCNT=0
+;          ..
+;          EQU $PASINCARRAY.LCNT=$PASINCARRAY.LCNT+1
+;         ..
+;         PASINCARRAY.RESORE.ASAMADDR
+;        ..
+;
+;        .PASINCARRAY.SAVE û
+;         PASINCARRAY.SAVE.ASAMADDR
+;         SaveBIN @.0,$PASINCARRAY.SADDR,$PASINCARRAY.BACKADR-$PASINCARRAY.SADDR
+;         PASINCARRAY.RESORE.ASAMADDR
+;        ..
+
+
+$PASINCARRAY.SIZE       EQU 0
+$PASINCARRAY.ADDS       EQU 0
+
+
+        .PASHEX.ADDBLK ,û
+         MOVEMEMAZ @.0,65536-@.1,16,@.1
+         EQU $ZX.R.BC=@.1
+         EQU $ZX.R.PC=EXHE_ST
+         EQU $ZX.R.BREAK=EXHE_EN
+         RunEmulZXne
+         EQU $PASINCARRAY.ADDS=$ZX.R.HL
+         EQU $PASINCARRAY.SIZE=$ZX.R.BC
+        ..
+
+        .PASHEX.RESET û
+         EQU $ZX.R.AF=@.0*256
+         EQU $ZX.R.PC=EXRE_ST
+         EQU $ZX.R.BREAK=EXHE_EN
+         RunEmulZXne
+         EQU $PASINCARRAY.ADDS=$ZX.R.HL
+         EQU $PASINCARRAY.SIZE=$ZX.R.BC
+        ..
+
+        .PASHEX.FINISH
+         EQU $ZX.R.PC=EXFI_ST
+         EQU $ZX.R.BREAK=EXHE_EN
+         RunEmulZXne
+         EQU $PASINCARRAY.ADDS=$ZX.R.HL
+         EQU $PASINCARRAY.SIZE=$ZX.R.BC
+        ..
+
+        .HEXHEX.SAVE ,,û
+         PASHEX.ADDBLK @.1,@.2
+         PASHEX.FINISH
+         PASINCARRAY.SAVE.ASAMADDR
+         MOVEMEMZA $PASINCARRAY.ADDS,16,0,$PASINCARRAY.SIZE
+         SaveBIN @.0,0,$PASINCARRAY.SIZE
+         PASINCARRAY.RESORE.ASAMADDR
+        ..
+
+        .PASHEX.SAVE ,,û
+         PASHEX.RESET 0
+         HEXHEX.SAVE @.0,@.1,@.2
+        ..
+
+        .CIIHEX.SAVE ,,û
+         PASHEX.RESET 1
+         HEXHEX.SAVE @.0,@.1,@.2
+        ..
+
+
+
+
+
+;-------------------------------------
+; Init ParSys
+;-------------------------------------
+        EQU $PASINCARRAY.TADDR=$
+        ORG 0
+        INCBIN "PROC\PARSASM.COD"
+        MoveMemAZ 0,PERSASM_START,16,PERSASM_SIZE
+        ORG $PASINCARRAY.TADDR
+
+

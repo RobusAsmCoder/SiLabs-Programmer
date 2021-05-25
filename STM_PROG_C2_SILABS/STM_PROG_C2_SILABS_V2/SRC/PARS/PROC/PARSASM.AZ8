@@ -1,0 +1,288 @@
+
+
+        Include "asam_l.az8"
+
+HEX_COU_PAS_LOOP_VALUE          EQU 19
+HEX_COU_PAS_START_VALUE         EQU HEX_COU_PAS_LOOP_VALUE-PARS_HEX_HEADER_SIZE/4
+
+HEX_COU_CII_LOOP_VALUE          EQU 16
+HEX_COU_CII_START_VALUE         EQU HEX_COU_CII_LOOP_VALUE;-PARS_HEX_HEADER_SIZE/5
+
+        ORG 16384 ;+112
+PERSASM_START   EQU $
+; IN:BC=SIZE IN WORDS
+;OUT: A=SIZE IN BYTES
+;    BC=SIZE IN BYTES
+EXTB_ST DI
+        AND A
+        RRC B
+        RRC C
+        LD B,C
+        LD A,B
+        OR A
+        JR Z,EXTBx4
+        LD HL,EXBSTR
+        LD SP,HL
+        XOR A
+EXTBx1  POP DE
+        LD (HL),E
+        INC HL
+        INC A
+;        INC D
+;        JR Z,EXTBx3     ;DETECT PARAMETER BYTE
+;        DEC D
+        INC E
+        DEC E
+        JR Z,EXTBx2
+        INC D
+        DEC D
+        JR Z,EXTBx3
+EXTBx2  LD (HL),D
+        INC HL
+        INC A
+EXTBx3  DJNZ EXTBx1
+EXTBx4  LD C,A
+EXTB_EN EQU $
+EXTB_SI EQU EXTB_EN-EXTB_ST
+
+
+
+
+
+
+
+
+
+
+
+HEX_PTR         DW PARS_HEX_START_ADDR_HEX_DATA
+HEX_COU         DB HEX_COU_PAS_START_VALUE
+HEX_BINBYTE     DW 0
+
+
+
+;HEX_TBL DB "0123456789ABCDEF"
+; IN: A=BYTE
+;OUT:DE=HEX VALUE
+HEX_ADE:EX DE,HL
+        AND A
+        RLA
+        LD L,A
+        LD A,HIGH(HEXXTBL)
+        ADC A,0
+        LD H,A
+        LD A,(HL)
+        INC L
+        LD H,(HL)
+        LD L,A
+        EX DE,HL
+HEX_ADE_END EQU $
+        RET
+;ARRAY CONVERTER FOR PASCAL
+
+
+HEX_BCTOHL:
+        LD A,B
+        CALL HEX_ADE
+        LD (HL),E
+        INC HL
+        LD (HL),D
+        INC HL
+        LD A,C
+        CALL HEX_ADE
+        LD (HL),E
+        INC HL
+        LD (HL),D
+        INC HL
+        RET
+
+;RESET VALUES
+; IN: A=0-PASCAL 1-CII
+EXRE_ST:LD HL,HESIHE
+        LD (HL),'0'
+        INC HL
+        LD (HL),'0'
+        INC HL
+        LD (HL),'0'
+        INC HL
+        LD (HL),'0'
+        LD HL,0
+        LD (HEX_BINBYTE),HL
+
+        OR A
+        LD HL,HEXXPAS
+        LD DE,HEX_COU_PAS_START_VALUE+HEX_COU_PAS_LOOP_VALUE*256
+        LD A,24
+        JR Z,EXREx1
+        LD HL,HEXXCII
+        LD DE,HEX_COU_CII_START_VALUE+HEX_COU_CII_LOOP_VALUE*256
+        LD A,62
+EXREx1  LD (EXHEx8),A
+        LD (EXFIx1),A
+        LD (EXHEx5+1),HL
+        LD A,D
+        LD (EXHEx6+1),A
+        LD A,E
+
+;        LD A,HEX_COU_PAS_START_VALUE
+        LD HL,PARS_HEX_START_ADDR_HEX_DATA
+        LD (EXHEx3+1),HL
+        JR EXHEx4
+
+HEXXPAS:LD (HL),'$'
+        RET
+
+HEXXCII:LD (HL),'0'
+        INC HL
+        LD (HL),'x'
+        RET
+
+
+EXFI_ST EQU $
+        LD HL,(EXHEx3+1)
+EXFIx1  JR EXHEx9
+        LD (HL),13
+        INC HL
+        LD (HL),10
+        INC HL
+        JR EXHEx9
+
+
+EXFI_EN EQU $
+EXFI_SI EQU EXFI_EN-EXFI_ST
+
+
+
+; IN:BC=SIZE BLOCK
+;OUT:BC=SIZE HEX DATA
+;    HL=ADDR START OF DATA
+EXHE_ST DI
+        LD SP,STACKSP
+
+        LD HL,(HEX_BINBYTE)
+        ADD HL,BC
+        LD (HEX_BINBYTE),HL
+        PUSH BC
+        LD C,L
+        LD B,H
+        LD HL,HESIHE
+        DEC BC
+        CALL HEX_BCTOHL
+        POP BC
+
+        LD A,C
+        CPL
+        LD C,A
+        LD A,B
+        CPL
+        LD B,A
+        INC BC
+        LD HL,(HEX_PTR)
+
+        LD A,(HEX_COU)
+        EXA
+EXHEx1  LD A,(BC)
+
+
+        CALL HEX_ADE
+
+EXHEx5  CALL HEXXPAS
+
+        INC HL
+        LD (HL),E
+        INC HL
+        LD (HL),D
+        INC HL
+        LD (EXHEx3+1),HL
+        LD (HL),','
+        INC HL
+        EXA
+        DEC A
+        JR NZ,EXHEx2
+EXHEx6  LD A,HEX_COU_PAS_LOOP_VALUE
+        LD (HL),13
+        INC HL
+        LD (HL),10
+        INC HL
+EXHEx2  EXA
+        INC C
+        JR NZ,EXHEx1
+        INC B
+        JR NZ,EXHEx1
+
+        EXA
+EXHEx4  LD (HEX_COU),A
+        LD (HEX_PTR),HL
+EXHEx3  LD HL,0
+EXHEx9  LD DE,PARS_HEX_START_ADDR
+        AND A
+        SBC HL,DE
+        LD C,L
+        LD B,H
+        LD HL,PARS_HEX_START_ADDR
+EXHEx8  JR EXHEx7
+        LD HL,0-PARS_HEX_HEADER_SIZE
+        ADD HL,BC
+        LD C,L
+        LD B,H
+        LD HL,PARS_HEX_START_ADDR_HEX_DATA
+EXHEx7  EQU $
+EXHE_EN EQU $
+EXHE_SI EQU EXHE_EN-EXHE_ST
+
+
+        ALIGN 256
+STACKSP EQU $
+HEXXTBL DB "000102030405060708090A0B0C0D0E0F"
+        DB "101112131415161718191A1B1C1D1E1F"
+        DB "202122232425262728292A2B2C2D2E2F"
+        DB "303132333435363738393A3B3C3D3E3F"
+        DB "404142434445464748494A4B4C4D4E4F"
+        DB "505152535455565758595A5B5C5D5E5F"
+        DB "606162636465666768696A6B6C6D6E6F"
+        DB "707172737475767778797A7B7C7D7E7F"
+        DB "808182838485868788898A8B8C8D8E8F"
+        DB "909192939495969798999A9B9C9D9E9F"
+        DB "A0A1A2A3A4A5A6A7A8A9AAABACADAEAF"
+        DB "B0B1B2B3B4B5B6B7B8B9BABBBCBDBEBF"
+        DB "C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF"
+        DB "D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF"
+        DB "E0E1E2E3E4E5E6E7E8E9EAEBECEDEEEF"
+        DB "F0F1F2F3F4F5F6F7F8F9FAFBFCFDFEFF"
+
+PARS_HEX_START_ADDR EQU $;18432
+        DB "$"
+HESIHE  DB "0000] OF BYTE=("
+PARS_HEX_HEADER_SIZE EQU $-PARS_HEX_START_ADDR
+PARS_HEX_START_ADDR_HEX_DATA EQU $
+
+
+PERSASM_END     EQU $
+PERSASM_SIZE    EQU PERSASM_END-PERSASM_START
+
+EXBSTR  EQU 65536-512;DS 512
+
+
+        ASAM.Label PARS_HEX_START_ADDR
+        ASAM.Label PERSASM_START
+        ASAM.Label PERSASM_END
+        ASAM.Label PERSASM_SIZE
+        ASAM.Label EXTB_ST
+        ASAM.Label EXTB_EN
+        ASAM.Label EXTB_SI
+        ASAM.Label EXBSTR
+        ASAM.Label EXRE_ST
+        ASAM.Label EXHE_ST
+        ASAM.Label EXHE_SI
+        ASAM.Label EXHE_EN
+        ASAM.Label EXFI_ST
+        ASAM.Label EXFI_SI
+        ASAM.Label EXFI_EN
+        ASAM.Label.Save "parsasm.inc"
+
+
+        SaveBIN "PARSASM.COD",PERSASM_START,PERSASM_SIZE
+
+        SaveLabels "PARSASM.txt"
+
+
